@@ -25,7 +25,7 @@
 🪶 **Everything is Markdown**: Software and hardware communicate by reading and writing local Markdown files (e.g., `ENVIRONMENT.md`, `ACTION.md`), achieving complete decoupling and extreme transparency.
 
 🧠 **Dual-Track Multi-Agent System**:
-- **Track A (Brain)**: Includes Planner and Critic mechanisms. The LLM does not issue commands directly; they must pass the Critic's validation against physical limits (`EMBODIED.md`) before being written to disk.
+- **Track A (Brain)**: Includes Planner and Critic mechanisms. The LLM does not issue commands directly; they must pass the Critic's validation against the active robot profile copied into runtime `EMBODIED.md` before being written to disk.
 - **Track B (HAL)**: An independent hardware watchdog (`hal_watchdog.py`) listens for commands and executes them.
 
 🛡️ **Anti-Shitstorm Mechanism**: Strict action validation and a `LESSONS.md` experience repository prevent Agent workflows from spiraling out of control.
@@ -86,6 +86,10 @@ cd OpenEmbodiedAgent
 pip install -e .
 # Install simulation dependencies (e.g., watchdog)
 pip install pybullet watchdog
+
+# Optional: install the external ReKep real-world plugin
+python scripts/deploy_rekep_real_plugin.py \
+  --repo-url https://github.com/baiyu858/oea-rekep-real-plugin.git
 ```
 
 ### 2. Initialize Workspace
@@ -93,7 +97,9 @@ pip install pybullet watchdog
 ```bash
 OEA onboard
 ```
-This will generate the core Markdown protocol files (`EMBODIED.md`, `ENVIRONMENT.md`, etc.) under `~/.OEA/workspace/`.
+This will generate the core Markdown protocol files under the active workspace.
+In single mode the default path is `~/.OEA/workspace/`.
+In fleet mode OEA uses a shared workspace plus one workspace per robot under `~/.OEA/workspaces/`.
 
 ### 3. Start the System
 
@@ -102,6 +108,12 @@ You need to open two terminals:
 **Terminal 1: Start Hardware Watchdog & Simulation (Track B)**
 ```bash
 python hal/hal_watchdog.py
+```
+
+If you want the real-world ReKep embodiment instead of simulation, install the plugin first and then run:
+
+```bash
+python hal/hal_watchdog.py --driver rekep_real
 ```
 
 **Terminal 2: Start Brain Agent (Track A)**
@@ -122,17 +134,23 @@ You will see the action executed in the simulation logs in Terminal 1, and recei
 OpenEmbodiedAgent/
 ├── OEA/                # Track A: Software Brain Core (extended from OEA)
 │   ├── agent/              # Agent Logic (Planner, Critic)
-│   ├── templates/          # Workspace Markdown Templates
+│   ├── templates/          # Workspace Markdown templates (protocol structure only)
 │   └── ...
 ├── hal/                    # Track B: Hardware HAL & Simulation (New)
 │   ├── hal_watchdog.py     # Hardware Watchdog Daemon
 │   └── simulation/         # Simulation Environment Code
-├── workspace/              # Runtime Workspace (Workspace API)
-│   ├── EMBODIED.md         # Robot Embodiment Declaration
+├── scripts/                # Deployment helpers for external HAL plugins
+│   └── deploy_rekep_real_plugin.py
+├── workspace/              # Single-mode runtime workspace (compatible default)
+│   ├── EMBODIED.md         # Runtime robot profile copied from hal/profiles/
 │   ├── ENVIRONMENT.md      # Current Environment Scene-Graph
 │   ├── ACTION.md           # Pending Action Commands
 │   ├── LESSONS.md          # Failure Experience Records
 │   └── SKILL.md            # Successful Workflow SOPs
+workspaces/             # Fleet-mode topology
+│   ├── shared/             # Agent workspace and global ENVIRONMENT.md
+│   ├── go2_edu_001/        # Robot-local ACTION.md / EMBODIED.md
+│   └── ...
 ├── docs/                   # Project Documentation
 │   ├── PLAN.md             # Detailed Implementation Plan
 │   └── PROJ.md             # Project Whitepaper & Architecture
