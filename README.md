@@ -6,8 +6,8 @@
     <a href="./README.md">English</a> | <a href="./README_zh.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-2.1.0-blue" alt="Version">
-    <img src="https://img.shields.io/badge/python-≥3.11-blue" alt="Python">
+    <img src="https://img.shields.io/badge/version-0.0.5-blue" alt="Version">
+    <img src="https://img.shields.io/badge/python-≥3.10-blue" alt="Python">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   </p>
 </div>
